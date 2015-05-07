@@ -3,5 +3,6 @@
 	<classpathentry kind="src" path="src/main/scala"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="target/scala-2.10/simple-project_2.10-1.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/work/spark/spark-samples/ml-samples/target/scala-2.10/ml-project_2.10-1.0.jar"/>
 	<classpathentry kind="output" path="target/scala-2.11/classes"/>
 </classpath>
