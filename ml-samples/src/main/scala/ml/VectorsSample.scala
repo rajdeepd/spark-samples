@@ -1,6 +1,5 @@
-/**
- * @author ubuntu
- */
+package ml
+
 import org.apache.spark.mllib.linalg.Vectors
 
 object VectorsSample {
