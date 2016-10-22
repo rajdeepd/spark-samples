@@ -15,24 +15,23 @@
  * limitations under the License.
  */
 
-package org.sparksamples.ml.clustering.kmeans
+package org.sparksamples.ml.clustering.gmm
 
 // scalastyle:off println
 
 // $example on$
 import org.apache.spark.SparkConf
-import org.apache.spark.ml.clustering.KMeans
+import org.apache.spark.ml.clustering.GaussianMixture
 // $example off$
 import org.apache.spark.mllib.regression.LabeledPoint
 import org.apache.spark.sql.SparkSession
 
 /**
  */
-object MovieLensKMeans {
+object GMMClustering {
 
 
   def main(args: Array[String]): Unit = {
-
     val spConfig = (new SparkConf).setMaster("local[1]").setAppName("SparkApp").
       set("spark.driver.allowMultipleContexts", "true")
 
@@ -46,38 +45,24 @@ object MovieLensKMeans {
       "./data/movie_lens_libsvm/movie_lens_users_libsvm/part-00000")
     datasetUsers.show(3)
 
-    val kmeans = new KMeans().setK(5).setSeed(1L)
+    val gmmUsers = new GaussianMixture().setK(5).setSeed(1L)
+    val modelUsers = gmmUsers.fit(datasetUsers)
 
-    val modelUsers = kmeans.fit(datasetUsers)
+    for (i <- 0 until modelUsers.gaussians.length) {
+      println("Users : weight=%f\ncov=%s\nmean=\n%s\n" format
+        (modelUsers.weights(i), modelUsers.gaussians(i).cov, modelUsers.gaussians(i).mean))
+    }
 
-    // Evaluate clustering by computing Within Set Sum of Squared Errors.
-    val WSSSEUsers = modelUsers.computeCost(datasetUsers)
-    println(s"Users :  Within Set Sum of Squared Errors = $WSSSEUsers")
+    val dataSetItems = spark.read.format("libsvm").load(
+      "./data/movie_lens_libsvm/movie_lens_items_libsvm/part-00000")
 
-    // Shows the result.
-    println("Users : Cluster Centers: ")
-    modelUsers.clusterCenters.foreach(println)
+    val gmmItems = new GaussianMixture().setK(5).setSeed(1L)
+    val modelItems = gmmItems.fit(dataSetItems)
 
-    val predictedUserClusters = modelUsers.transform(datasetUsers)
-    predictedUserClusters.show(5)
-
-    val datasetItems = spark.read.format("libsvm").load(
-      "./data/movie_lens_libsvm/movie_lens_users_libsvm/part-00000")
-    datasetItems.show(3)
-
-    val kmeansItems = new KMeans().setK(5).setSeed(1L)
-
-    val modelItems = kmeansItems.fit(datasetItems)
-
-    // Evaluate clustering by computing Within Set Sum of Squared Errors.
-    val WSSSEItems = modelItems.computeCost(datasetItems)
-    println(s"Items :  Within Set Sum of Squared Errors = $WSSSEItems")
-
-    // Shows the result.
-    println("Items - Cluster Centers: ")
-    modelUsers.clusterCenters.foreach(println)
-
-
+    for (i <- 0 until modelItems.gaussians.length) {
+      println("Items : weight=%f\ncov=%s\nmean=\n%s\n" format
+        (modelUsers.weights(i), modelUsers.gaussians(i).cov, modelUsers.gaussians(i).mean))
+    }
 
     spark.stop()
   }

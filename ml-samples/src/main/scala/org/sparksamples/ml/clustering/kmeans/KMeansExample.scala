@@ -69,6 +69,9 @@ object KMeansExample {
     println("Cluster Centers: ")
     model.clusterCenters.foreach(println)
     // $example off$
+    import spark.implicits._
+    val transformed = model.transform(dataset)
+    println(transformed.first()(2))
 
     spark.stop()
   }
