@@ -10,10 +10,11 @@ import scala.collection.Map
   * Created by rajdeep dua on 4/15/16.
   */
 object Util {
-  val PATH= "../data/hour_noheader.csv"
+  val PATH= "./data/data_regression/hour_noheader.csv"
   val spConfig = (new SparkConf).setMaster("local[1]").setAppName("SparkApp").
     set("spark.driver.allowMultipleContexts", "true")
   val sc = new SparkContext(spConfig)
+  var global = 0
 
   def getRecords() : (RDD[Array[String]],Long) ={
     //val sc = new SparkContext("local[2]", "First Spark App")
@@ -26,6 +27,40 @@ object Util {
 
     val records = rawData.map(line => line.split(","))
     return (records, numData)
+  }
+
+  def convertToFloat(x : Array[String]) : Array[Float] = {
+    val result = new Array[Float](x.length)
+    for (i <- 0 until x.length ) {
+      result(i) = x(i).toFloat
+    }
+    return result
+  }
+
+  def addLabel(x: String) : String = {
+    val y  = Util.global + " " + x
+    Util.global +=1
+    return y
+  }
+
+  def convertToLibSVM(x: Array[String]) : String = {
+    var result = ""
+    for (i <- 0 until x.length ) {
+      result = result + " " + (i +1) + ":" + x(i)
+    }
+    return result
+  }
+
+  def saveDiabetesDataAsLibSVM() : RDD[String]  = {
+    val data = sc.textFile("./data/data_diabetes/diabetes_data.csv")
+
+    val split_lines = data.map(_.split(" "))
+    val split_lines_libsvm = split_lines.map(x => convertToLibSVM(x))
+    val libsvm = split_lines_libsvm.map(x => addLabel(x))
+    val x = libsvm.first()
+    print(x)
+    libsvm.saveAsTextFile("./data/diabetes_libsvm")
+    return libsvm
   }
 
   def extractFeatures(record : Array[String], cat_len: Int,

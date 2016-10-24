@@ -1,4 +1,4 @@
-package org.sparksamples.ml.regression.linearregression
+package org.sparksamples.ml.regression.linearregression.archive
 
 import org.apache.spark.mllib.regression.{LabeledPoint, LinearRegressionWithSGD}
 import org.apache.spark.rdd.RDD

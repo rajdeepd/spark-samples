@@ -1,4 +1,4 @@
-package org.sparksamples.ml.regression.linearregression
+package org.sparksamples.ml.regression.linearregression.archive
 
 import org.apache.spark.mllib.regression.{LabeledPoint, LinearRegressionWithSGD}
 import org.sparksamples.ml.regression.Util
@@ -10,9 +10,12 @@ import scala.collection.mutable.ListBuffer
   * LogisticalRegression App
   * @author Rajdeep Dua
   */
-object LinearRegressionWithIntercept{
+object LinearRegressionWithLog{
+
+
 
   def main(args: Array[String]) {
+
     val recordsArray = Util.getRecords()
     val records = recordsArray._1
     val first = records.first()
@@ -38,29 +41,25 @@ object LinearRegressionWithIntercept{
     print("Total feature vector length: " + totalLen)
 
     val data = {
-      records.map(r => LabeledPoint(Util.extractLabel(r), Util.extractFeatures(r, catLen, mappings)))
-    }
-    val data1 = {
-      records.map(r => Util.extractFeatures(r, catLen, mappings))
+      records.map(r => LabeledPoint(Math.log(Util.extractLabel(r)), Util.extractFeatures(r, catLen, mappings)))
     }
     val first_point = data.first()
     println("Linear Model feature vector:" + first_point.features.toString)
     println("Linear Model feature vector length: " + first_point.features.size)
 
     val iterations = 10
+    //val step = 0.2
     val step = 0.025
     val intercept =true
 
-    val linReg = new LinearRegressionWithSGD().setIntercept(intercept)
-    linReg.optimizer.setNumIterations(iterations).setStepSize(step)
-    val linear_model = linReg.run(data)
-    print(data.first());
+    //LinearRegressionWithSGD.tr
+    val linear_model = LinearRegressionWithSGD.train(data, iterations, step)
     val x = linear_model.predict(data.first().features)
-    val true_vs_predicted = data.map(p => (p.label, linear_model.predict(p.features)))
+    val true_vs_predicted = data.map(p => (Math.exp(p.label), Math.exp(linear_model.predict(p.features))))
     val true_vs_predicted_csv = data.map(p => p.label + " ,"  + linear_model.predict(p.features))
     val format = new java.text.SimpleDateFormat("dd-MM-yyyy-hh-mm-ss")
     val date = format.format(new java.util.Date())
-    val save = true
+    val save = false
     if (save){
       true_vs_predicted_csv.saveAsTextFile("./output/linear_model_" + date + ".csv")
     }
@@ -68,13 +67,8 @@ object LinearRegressionWithIntercept{
     for(i <- 0 until 5) {
       println("True vs Predicted: " + "i :" + true_vs_predicted_take5(i))
     }
-    val mse = true_vs_predicted.map{ case(t, p) => Util.squaredError(t, p)}.mean()
-    val mae = true_vs_predicted.map{ case(t, p) => Util.absError(t, p)}.mean()
-    val rmsle = Math.sqrt(true_vs_predicted.map{ case(t, p) => Util.squaredLogError(t, p)}.mean())
 
-    println("Linear Model - Mean Squared Error: "  + mse)
-    println("Linear Model - Mean Absolute Error: " + mae)
-    println("Linear Model - Root Mean Squared Log Error:" + rmsle)
+    Util.calculatePrintMetrics(true_vs_predicted, "LinearRegressioWithSGD Log")
 
   }
 

@@ -1,4 +1,4 @@
-package org.sparksamples.ml.regression.linearregression
+package org.sparksamples.ml.regression.linearregression.archive
 
 import org.apache.spark.mllib.regression.{LabeledPoint, LinearRegressionWithSGD}
 import org.sparksamples.ml.regression.Util
@@ -10,7 +10,8 @@ import scala.collection.mutable.ListBuffer
   * LogisticalRegression App
   * @author Rajdeep Dua
   */
-object LinearRegression{
+object LinearRegressionWithIntercept{
+
   def main(args: Array[String]) {
     val recordsArray = Util.getRecords()
     val records = recordsArray._1
@@ -39,6 +40,9 @@ object LinearRegression{
     val data = {
       records.map(r => LabeledPoint(Util.extractLabel(r), Util.extractFeatures(r, catLen, mappings)))
     }
+    val data1 = {
+      records.map(r => Util.extractFeatures(r, catLen, mappings))
+    }
     val first_point = data.first()
     println("Linear Model feature vector:" + first_point.features.toString)
     println("Linear Model feature vector length: " + first_point.features.size)
@@ -47,8 +51,10 @@ object LinearRegression{
     val step = 0.025
     val intercept =true
 
-    //LinearRegressionWithSGD.tr
-    val linear_model = LinearRegressionWithSGD.train(data, iterations, step)
+    val linReg = new LinearRegressionWithSGD().setIntercept(intercept)
+    linReg.optimizer.setNumIterations(iterations).setStepSize(step)
+    val linear_model = linReg.run(data)
+    print(data.first());
     val x = linear_model.predict(data.first().features)
     val true_vs_predicted = data.map(p => (p.label, linear_model.predict(p.features)))
     val true_vs_predicted_csv = data.map(p => p.label + " ,"  + linear_model.predict(p.features))
@@ -62,8 +68,13 @@ object LinearRegression{
     for(i <- 0 until 5) {
       println("True vs Predicted: " + "i :" + true_vs_predicted_take5(i))
     }
+    val mse = true_vs_predicted.map{ case(t, p) => Util.squaredError(t, p)}.mean()
+    val mae = true_vs_predicted.map{ case(t, p) => Util.absError(t, p)}.mean()
+    val rmsle = Math.sqrt(true_vs_predicted.map{ case(t, p) => Util.squaredLogError(t, p)}.mean())
 
-    Util.calculatePrintMetrics(true_vs_predicted, "LinearRegressioWithSGD")
+    println("Linear Model - Mean Squared Error: "  + mse)
+    println("Linear Model - Mean Absolute Error: " + mae)
+    println("Linear Model - Root Mean Squared Log Error:" + rmsle)
 
   }
 
