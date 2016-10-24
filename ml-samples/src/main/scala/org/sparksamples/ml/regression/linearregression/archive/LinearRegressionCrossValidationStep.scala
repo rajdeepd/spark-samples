@@ -2,8 +2,7 @@ package org.sparksamples.ml.regression.linearregression.archive
 
 import org.jfree.data.category.DefaultCategoryDataset
 import org.jfree.ui.RefineryUtilities
-import LinearRegressionUtil
-//import org.sparksamples.chart.LineChart
+
 import org.sparksamples.ml.regression.chart.LineChart
 /**
   * LogisticalRegression App
